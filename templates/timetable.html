@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Penerbangan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        #tanggalwaktu {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-section {
+            max-width: 1400px;
+            margin: 0 auto 20px;
+        }
+
+        .back-button {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(-5px);
+        }
+
+        .filters-section {
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .filters {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filters label {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .filters input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: border-color 0.3s ease;
+        }
+
+        .filters input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-top: none;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            border-radius: 0 0 8px 8px;
+            display: none;
+        }
+
+        .filter-list-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .filter-list-item:hover {
+            background-color: #f5f5f5;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .filter-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .flight-panel {
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flight-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .flight-panel:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
+        }
+
+        .flight-panel:hover::before {
+            opacity: 1;
+        }
+
+        .flight-panel img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            object-fit: contain;
+        }
+
+        .flight-number {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0 5px 0;
+        }
+
+        .airline-name {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        .route {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .time-info {
+            font-size: 0.9em;
+            color: #666;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .time-info strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .pagination button {
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .pagination button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .pagination button:active {
+            transform: translateY(0);
+        }
+
+        .no-flights {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 1.1em;
+            color: #666;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 15px;
+            }
+
+            .flight-panel {
+                min-height: 260px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-wrapper {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .pagination button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✈️ Jadwal Penerbangan</h1>
+        <p>Tanggal/Waktu: <span id="tanggalwaktu"></span></p>
+    </div>
+
+    <script>
+        function updateClock() {
+            var tw = new Date();
+            if (tw.getTimezoneOffset() == 0) (a=tw.getTime() + ( 7 *60*60*1000))
+            else (a=tw.getTime());
+            tw.setTime(a);
+            var tahun= tw.getFullYear ();
+            var hari= tw.getDay ();
+            var bulan= tw.getMonth ();
+            var tanggal= tw.getDate ();
+            var jam = tw.getHours();
+            var menit = tw.getMinutes();
+            var detik = tw.getSeconds();
+            var hariarray=new Array("Minggu,","Senin,","Selasa,","Rabu,","Kamis,","Jum'at,","Sabtu,");
+            var bulanarray=new Array("Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","Nopember","Desember");
+            document.getElementById("tanggalwaktu").innerHTML = hariarray[hari]+" "+tanggal+" "+bulanarray[bulan]+" "+tahun+" Jam " + ((jam < 10) ? "0" : "") + jam + ":" + ((menit < 10) ? "0" : "") + menit + ":" + ((detik < 10) ? "0" : "") + detik;
+        }
+
+        setInterval(updateClock, 1000); 
+        updateClock(); 
+    </script>
+
+    <div class="nav-section">
+        <a href="/" class="back-button">&larr; Kembali ke Halaman Utama</a>
+    </div>
+
+    <div class="filters-section">
+        <div class="filters">
+            <label for="searchFilter">🔍 Cari Maskapai atau Nomor Penerbangan</label>
+            <div class="search-wrapper">
+                <input type="text" id="searchFilter" placeholder="">
+                <div class="filter-list" id="filterList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="container" id="timetable"></div>
+    </div>
+
+    <div class="pagination">
+        <button onclick="previousPage()">⬅️ Sebelumnya</button>
+        <button onclick="nextPage()">Selanjutnya ➡️</button>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentSearchFilter = ''; 
+        const itemsPerPage = 20; 
+        
+      
+        const airlineLogos = {
+            "Garuda Indonesia": "https://logos-world.net/wp-content/uploads/2023/01/Garuda-Indonesia-Logo.png",
+            "Citilink": "https://logowik.com/content/uploads/images/citilink3703.logowik.com.webp",
+            "Batik Air": "https://iconape.com/wp-content/files/yn/356938/svg/356938.svg",
+            "Lion Air": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPvRk5qd5A44_rQWnhVEcgCvHbTZA9Jsojdw&s",
+            "Pelita Air": "https://iconape.com/wp-content/png_logo_vector/pelita-air-service.png",
+            "Super Air Jet": "https://logowik.com/content/uploads/images/super-air-jet4071.logowik.com.webp",
+            "Sriwijaya Air": "https://2.bp.blogspot.com/-FI54eTh42J0/UPp1iZvSqHI/AAAAAAAAFPE/Y4X5ZsDtbm0/s1600/Logo+Sriwijaya+Air.jpg",
+            "Trigana Air": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Trigana_Air_Service_logo.svg/1024px-Trigana_Air_Service_logo.svg.png",
+            "Indonesia Air": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Indonesia_Air_Transport_logo.svg/1200px-Indonesia_Air_Transport_logo.svg.png",
+            "NAM Air": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSt2f3VXHJCqj9z8sQ_4v9zj0QN0vfH_8rEVw&s",
+            "Airfast Indonesia": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6QKqMqNzxPDC5W4VBnE6Zk6YT7v0l9FvU2w&s",
+            "Merpati Nusantara": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Merpati_Nusantara_Airline_Logo.svg/1024px-Merpati_Nusantara_Airline_Logo.svg.png",
+            "Manado Air": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSz-jRvJFJCbf9zvzPcDqSvGzB9l6Px-8vPjg&s",
+            "Wings Air": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg9t5cCF8mVEWsX_sKQYnJ_5E1KyJSqkJ_Jg&s",
+            "Xpress Air": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3RqX8rp9VJZ_yY7nv5aK4lB2e5Q9Z0eZ9wg&s",
+            "Raya Airways": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQzL_8R9s1yX0vQkE5M7pVzDj_6w-lYmE3B7g&s",
+            "Blue Bird Airline": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8wJ2mH9lRj7xQ_6kB9vY5hJzX8lE5pF2w9g&s",
+            "Kal Star Aviation": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5fP6jK7pL8mN9qR0sT1uV2wX3yZ4aB5cD6e&s",
+        };
+
+        const airlines = Object.keys(airlineLogos);
+
+        function loadTimetable() {
+            fetch('/api/timetable')
+                .then(response => response.json())
+                .then(data => {
+                    displayTimetable(data);
+                })
+                .catch(error => {
+                    document.getElementById('timetable').innerHTML = `<div class="no-flights">Error: ${error.message}</div>`;
+                });
+        }
+        
+        function displayTimetable(data) {
+            const timetableDiv = document.getElementById('timetable');
+            timetableDiv.innerHTML = '';
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const items = applyFilters(data);
+
+            const currentTime = new Date();
+
+            const filteredFlights = items.filter(flight => {
+                const arrivalTime = new Date(flight.arrival.scheduledTime);
+                const departureTime = new Date(flight.departure.scheduledTime);
+                
+                const includeArrival = arrivalTime > currentTime;
+                const includeDeparture = departureTime <= currentTime;
+
+                return includeArrival && includeDeparture;
+            });
+
+            const itemsWithLogo = filteredFlights.filter(item => airlineLogos[item.airline.name]);
+            const itemsWithoutLogo = filteredFlights.filter(item => !airlineLogos[item.airline.name]);
+
+            const sortedItems = [...itemsWithLogo, ...itemsWithoutLogo];
+
+            const itemsToShow = sortedItems.slice(startIndex, endIndex);
+
+            if (itemsToShow.length === 0) {
+                timetableDiv.innerHTML = '<div class="no-flights">📭 Tidak ada penerbangan domestik Indonesia yang ditemukan saat ini</div>';
+                return;
+            }
+
+            itemsToShow.forEach(flight => {
+                const flightPanel = document.createElement('div');
+                flightPanel.className = 'flight-panel';
+
+                const airlineLogo = airlineLogos[flight.airline.name];
+                const logoHtml = airlineLogo ? `<img src="${airlineLogo}" alt="${flight.airline.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect width=%2280%22 height=%2280%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2240%22 y=%2240%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2210%22 fill=%22%23999%22%3E✈️%3C/text%3E%3C/svg%3E'">` : '';
+
+                const depTime = flight.departure.scheduledTime ? new Date(flight.departure.scheduledTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: true}) : 'N/A';
+                const arrTime = flight.arrival.scheduledTime ? new Date(flight.arrival.scheduledTime).toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: true}) : 'N/A';
+
+                flightPanel.innerHTML = `
+                    ${logoHtml}
+                    <div class="flight-number">${flight.flight && flight.flight.iataNumber ? flight.flight.iataNumber : 'N/A'}</div>
+                    <div class="airline-name">${flight.airline.name || 'N/A'}</div>
+                    <div class="route"><strong>${flight.departure.iataCode || '?'}</strong> → <strong>${flight.arrival.iataCode || '?'}</strong></div>
+                    <div class="time-info">🕐 <strong>${depTime}</strong></div>
+                    <div class="time-info">🛬 <strong>${arrTime}</strong></div>
+                `;
+
+                timetableDiv.appendChild(flightPanel);
+            });
+        }
+
+        function applyFilters(data) {
+            return data.filter(flight => {
+                const filterText = currentSearchFilter.toLowerCase();
+                const matchesAirline = flight.airline.name.toLowerCase().includes(filterText);
+                const matchesFlightNumber = flight.flight.iataNumber.toLowerCase().includes(filterText);
+                return matchesAirline || matchesFlightNumber;
+            });
+        }
+
+        function filterData() {
+            const filterInput = document.getElementById('searchFilter');
+            currentSearchFilter = filterInput.value.trim();
+            currentPage = 1; 
+            loadTimetable();
+            updateFilterList();
+        }
+
+        function updateFilterList() {
+            const filterInput = document.getElementById('searchFilter');
+            const filterList = document.getElementById('filterList');
+
+            if (currentSearchFilter) {
+                const filteredItems = airlines.filter(airline =>
+                    airline.toLowerCase().includes(currentSearchFilter.toLowerCase())
+                );
+                if (filteredItems.length > 0) {
+                    filterList.innerHTML = '';
+                    filteredItems.forEach(item => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'filter-list-item';
+                        listItem.textContent = item;
+                        listItem.onclick = () => {
+                            filterInput.value = item;
+                            filterData();
+                            filterList.style.display = 'none';
+                        };
+                        filterList.appendChild(listItem);
+                    });
+                    filterList.style.display = 'block';
+                } else {
+                    filterList.style.display = 'none';
+                }
+            } else {
+                filterList.style.display = 'none';
+            }
+        }
+
+        function nextPage() {
+            currentPage++;
+            loadTimetable();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadTimetable();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        window.onload = loadTimetable;
+        document.getElementById('searchFilter').addEventListener('input', filterData);
+        document.addEventListener('click', function(event) {
+            if (!event.target.matches('#searchFilter')) {
+                document.getElementById('filterList').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

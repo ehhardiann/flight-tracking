@@ -1,0 +1,57 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+#map {
+    height: 600px;
+    width: 800px;
+}
+
+h1 {
+    margin: 20px 0;
+}
+
+/* Fix untuk icon pesawat agar bisa diklik */
+.plane-icon {
+    pointer-events: auto !important;
+    z-index: 1000 !important;
+    cursor: pointer !important;
+}
+
+.plane-marker {
+    pointer-events: auto !important;
+    user-select: none;
+    cursor: pointer !important;
+}
+
+.leaflet-marker-icon {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+.leaflet-marker-pane {
+    pointer-events: auto !important;
+}
+
+.leaflet-popup {
+    pointer-events: auto !important;
+}
+
+.leaflet-popup-content-wrapper {
+    pointer-events: auto !important;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 0;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    min-width: 300px;
+}
+
+.flight-popup .leaflet-popup-tip {
+    background: white;
+}
