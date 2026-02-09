@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify
 import requests
 from datetime import datetime
 import time
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 app = Flask(__name__)
@@ -157,4 +158,4 @@ def get_all_timetable():
     return jsonify(all_rows)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
